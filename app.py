@@ -83,10 +83,8 @@ class Link(Resource):
     '''
     def put(self):
         print('put')
-        req_headers= request.headers
-        header_list = req_headers.items()
-        if_match_etag = req_headers.get('If-Match')
-        print('put request header If-Match is', if_match_etag)
+        if_match_etag = request.headers.get('If-Match')
+        print('put request header If-Match = ', if_match_etag)
         if if_match_etag == '1234567':
             return 'success', 200
         else:
