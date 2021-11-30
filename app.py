@@ -1,4 +1,6 @@
-from flask import Flask
+from flask import Flask, request
+from flask_restful import Api, Resource
+
 import hashlib
 
 app=Flask(__name__)
@@ -9,7 +11,11 @@ def hello():
 
 @app.route('/health_check')
 def health_check():
-    return 'OK'
+    return 'OK get'
+
+@app.route('/health_check_p', methods=['POST'])
+def health_check_p():
+    return 'OK post'
 
 @app.route('/shorten')
 def shorten():
@@ -51,9 +57,46 @@ def _base16_to_base62(s):
         base62 = '0'*(8-len(base62)) + base62
     return base62
 
+class Link(Resource):
+
+    def __init__(self):
+        print('initialize link')
+
+    def get(self):
+        print('doing get link')
+        req_headers= request.headers
+        header_list = req_headers.items()
+        for header in header_list:
+            print(header)
+        etag='1234567' # dummy_etag
+        print('returning response resource with etag header')
+        return "Request headers:\n" + str(request.headers)
+
+
+    def post(self):
+        print('posting')
+        return 'POST'
+
+    '''
+    A working Curl example
+    curl -v -X PUT -H "If-Match:1234567" http://127.0.0.1:5000/link
+    '''
+    def put(self):
+        print('put')
+        req_headers= request.headers
+        header_list = req_headers.items()
+        if_match_etag = req_headers.get('If-Match')
+        print('put request header If-Match is', if_match_etag)
+        if if_match_etag == '1234567':
+            return 'success', 200
+        else:
+            return 'failure', 412
+
+api=Api(app)
+api.add_resource(Link, '/link')
 
 if __name__=='__main__':
-    r=_base16_to_base62('aaa45b')
-    print(r)
+    #r=_base16_to_base62('aaa45b')
+    #print(r)
     #shorten()
-    #app.run( debug=True)
+    app.run(debug=True)
