@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, Response
 from flask_restful import Api, Resource
 
 import hashlib
@@ -62,13 +62,31 @@ class Link(Resource):
     def __init__(self):
         print('initialize link')
 
+    '''
+    A working Curl example
+    curl -v -X GET -H "If-None-Match:1234567" http://127.0.0.1:5000/link
+    '''
     def get(self):
         print('doing get link')
         req_headers= request.headers
-        header_list = req_headers.items()
-        for header in header_list:
-            print(header)
-        etag='1234567' # dummy_etag
+        client_etag = req_headers.get('If-None-Match')
+
+        '''
+        the client get request could use a If-None-Match header with etag value
+        means please give me the new resource if this etag is stale
+        the server will compare the etag with current etag, if they match, just respond with 304 Not Modified
+        if not match, actually return the resource
+        '''
+        db_etag='1234567' # dummy etag to represent current version in database
+        if client_etag==db_etag:
+            return 'not modified', 304
+        else:
+            print('prepare the data and return it')
+            # here we can insert the new etag to response header
+            response = Response(status=200) # status=200 can be ommited here
+            response.headers["ETag"] = db_etag
+            return response
+
         print('returning response resource with etag header')
         return "Request headers:\n" + str(request.headers)
 
