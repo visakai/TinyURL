@@ -106,7 +106,7 @@ class Link(Resource):
         if if_match_etag == '1234567':
             return 'success', 200
         else:
-            return 'failure', 412
+            return 'Precondition Failed', 412
 
 api=Api(app)
 api.add_resource(Link, '/link')
